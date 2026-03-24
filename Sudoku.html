@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Puzzles</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #07090f;
+            --glass: rgba(255,255,255,0.038);
+            --glass2: rgba(255,255,255,0.055);
+            --gb: rgba(255,255,255,0.07);
+            --gb2: rgba(255,255,255,0.13);
+            --accent: #4fc3f7;
+            --accent2: #81d4fa;
+            --gold: #ffd54f;
+            --red: #ef5350;
+            --green: #66bb6a;
+            --violet: #b39ddb;
+            --orange: #ffb74d;
+            --pink: #f48fb1;
+            --teal: #4db6ac;
+            --text: rgba(255,255,255,0.88);
+            --text2: rgba(255,255,255,0.55);
+            --text3: rgba(255,255,255,0.28);
+            --mono: 'JetBrains Mono', monospace;
+            --sans: Helvetica, 'Helvetica Neue', Arial, sans-serif;
+            --r: 16px; --r2: 20px;
+            --slider-color: #4fc3f7;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--mono);overflow-x:hidden}
+        #ambient{position:fixed;inset:0;z-index:0;pointer-events:none;
+            background:radial-gradient(ellipse 70% 55% at 15% 8%,rgba(79,195,247,0.06) 0%,transparent 65%),
+            radial-gradient(ellipse 55% 45% at 85% 85%,rgba(179,157,219,0.05) 0%,transparent 60%),
+            radial-gradient(ellipse 45% 55% at 70% 20%,rgba(255,213,79,0.03) 0%,transparent 55%),
+            radial-gradient(ellipse 60% 40% at 30% 75%,rgba(102,187,106,0.03) 0%,transparent 55%)}
+        .page{display:none;position:relative;z-index:1;min-height:100vh}
+        .page.active{display:flex;flex-direction:column}
+
+        /* HOME */
+        #page-home{align-items:center;padding:48px 20px 60px}
+        .home-header{text-align:center;margin-bottom:48px}
+        .home-header .eyebrow{font-size:0.65rem;letter-spacing:0.28em;color:var(--text3);text-transform:uppercase;margin-bottom:14px}
+        .home-header h1{font-family:var(--sans);font-weight:700;font-size:clamp(2.4rem,6vw,4rem);letter-spacing:-0.03em;line-height:1;margin-bottom:12px;color:#fff}
+        .home-header h1 span{background:linear-gradient(135deg,var(--accent) 0%,var(--violet) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .home-header p{color:var(--text2);font-size:0.82rem;font-weight:300;letter-spacing:0.03em}
+        .puzzle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;width:100%;max-width:900px}
+        .puzzle-card{background:var(--glass);border:1px solid var(--gb);border-radius:var(--r2);padding:28px 24px;cursor:pointer;transition:all 0.25s cubic-bezier(0.2,0,0,1);backdrop-filter:blur(20px);position:relative;overflow:hidden}
+        .puzzle-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--card-color,rgba(79,195,247,0.08)) 0%,transparent 60%);opacity:0;transition:opacity 0.3s;border-radius:var(--r2)}
+        .puzzle-card:hover{border-color:var(--gb2);transform:translateY(-3px);box-shadow:0 16px 48px rgba(0,0,0,0.4)}
+        .puzzle-card:hover::before{opacity:1}
+        .card-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;background:var(--card-color,rgba(79,195,247,0.12))}
+        .card-icon .material-icons{font-size:26px;color:var(--card-accent,var(--accent))}
+        .puzzle-card h3{font-family:var(--sans);font-weight:700;font-size:1.05rem;margin-bottom:6px;color:#fff;letter-spacing:-0.01em}
+        .puzzle-card p{font-size:0.72rem;color:var(--text2);line-height:1.55;font-weight:300;margin-bottom:16px}
+        .card-tags{display:flex;gap:5px;flex-wrap:wrap}
+        .tag{font-size:0.58rem;padding:2px 7px;border-radius:4px;letter-spacing:0.1em;text-transform:uppercase;background:rgba(255,255,255,0.06);color:var(--text3);border:1px solid rgba(255,255,255,0.07)}
+
+        /* PUZZLE PAGES */
+        .puzzle-page{align-items:center;padding:28px 20px 60px}
+        .puzzle-topbar{display:flex;align-items:center;gap:12px;width:100%;max-width:720px;margin-bottom:24px}
+        .btn-back{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1px solid var(--gb);background:var(--glass);color:var(--text2);font-family:var(--mono);font-size:0.72rem;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+        .btn-back:hover{border-color:var(--gb2);color:var(--text)}
+        .btn-back .material-icons{font-size:16px}
+        .puzzle-title-area{flex:1}
+        .puzzle-title-area h2{font-family:var(--sans);font-weight:700;font-size:1.3rem;letter-spacing:-0.02em;color:#fff}
+        .puzzle-title-area .sub{font-size:0.68rem;color:var(--text3);font-weight:300;margin-top:2px}
+
+        /* ─── DIFFICULTY SLIDER ──────────────────────────────────────── */
+        .diff-slider-wrap{width:100%;max-width:720px;margin-bottom:20px;
+            background:var(--glass);border:1px solid var(--gb);border-radius:14px;
+            padding:16px 20px 14px;backdrop-filter:blur(20px)}
+        .diff-slider-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+        .diff-slider-label{font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3)}
+        .diff-level-display{display:flex;align-items:center;gap:8px}
+        .diff-level-num{font-size:1.1rem;font-weight:700;color:var(--slider-color,var(--accent));transition:color 0.3s;min-width:28px;text-align:right}
+        .diff-level-badge{font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);padding:2px 7px;border-radius:4px;border:1px solid var(--gb)}
+        .slider-track{position:relative;height:6px;background:rgba(255,255,255,0.07);border-radius:3px;margin-bottom:10px}
+        .slider-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px;background:var(--slider-color,var(--accent));transition:width 0.15s,background 0.3s}
+        input.diff-slider{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0;padding:0}
+        .slider-pips{display:flex;justify-content:space-between;padding:0 0px}
+        .slider-pip{font-size:0.55rem;color:var(--text3);letter-spacing:0.05em}
+        .slider-pip:nth-child(5){color:var(--orange);opacity:0.7}
+        .slider-pip:last-child{color:var(--red);opacity:0.7}
+
+        /* CARD SHELL */
+        .puzzle-card-shell{background:var(--glass);border:1px solid var(--gb);border-radius:var(--r2);backdrop-filter:blur(24px);padding:24px;width:100%;max-width:720px;box-shadow:0 8px 48px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)}
+        .meta-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+        .meta-left{display:flex;align-items:center;gap:8px}
+        .timer-display{font-family:var(--mono);font-size:0.85rem;font-weight:600;color:var(--text2);letter-spacing:0.06em}
+        .mistake-dots{display:flex;gap:4px;align-items:center}
+        .mdot{width:6px;height:6px;border-radius:50%;background:var(--red);opacity:0.18;transition:opacity 0.3s}
+        .mdot.on{opacity:1}
+        .diff-label{font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);font-family:var(--mono)}
+
+        /* ACTIONS */
+        .action-row{display:flex;gap:8px;margin-top:18px}
+        .act-btn{flex:1;padding:12px;border-radius:10px;border:1px solid var(--gb);background:var(--glass);color:var(--text2);font-family:var(--mono);font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+        .act-btn:hover{background:var(--glass2);color:var(--text);border-color:var(--gb2)}
+        .act-btn.solve-btn{background:linear-gradient(135deg,rgba(79,195,247,0.18),rgba(79,195,247,0.06));border-color:rgba(79,195,247,0.3);color:var(--accent)}
+        .act-btn.solve-btn:hover{box-shadow:0 0 20px rgba(79,195,247,0.18)}
+        .act-btn.print-btn{background:linear-gradient(135deg,rgba(255,213,79,0.15),rgba(255,213,79,0.04));border-color:rgba(255,213,79,0.25);color:var(--gold)}
+        .act-btn.print-btn:hover{box-shadow:0 0 20px rgba(255,213,79,0.15)}
+        .act-btn.print-btn:disabled{opacity:0.25;cursor:not-allowed}
+        .status-bar{text-align:center;margin-top:14px;font-size:0.75rem;color:var(--text3);font-family:var(--mono);font-weight:300;font-style:italic;min-height:18px;transition:color 0.3s}
+        .status-bar.win{color:var(--green)}
+        .status-bar.err{color:var(--red)}
+
+        /* SUDOKU BOARD */
+        .sudoku-board-wrap{display:flex;justify-content:center;margin-bottom:16px;overflow-x:auto}
+        .sudoku-board{display:grid;grid-template-columns:repeat(9,52px);grid-template-rows:repeat(9,52px);gap:1px;background:rgba(255,255,255,0.055);border:2px solid rgba(255,255,255,0.13);border-radius:10px;overflow:hidden}
+        .s-cell{width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:600;font-family:var(--mono);background:rgba(255,255,255,0.022);cursor:pointer;user-select:none;transition:background 0.12s,color 0.12s;color:var(--text);outline:none;border:none}
+        .s-cell[data-col="2"],.s-cell[data-col="5"]{border-right:2px solid rgba(255,255,255,0.13)}
+        .s-cell[data-row="2"],.s-cell[data-row="5"]{border-bottom:2px solid rgba(255,255,255,0.13)}
+        .s-cell.given{color:var(--accent2);background:rgba(79,195,247,0.055)}
+        .s-cell.selected{background:rgba(79,195,247,0.18)!important;color:#fff}
+        .s-cell.hl{background:rgba(79,195,247,0.055)}
+        .s-cell.same{background:rgba(79,195,247,0.1)}
+        .s-cell.conflict{color:var(--red)!important;background:rgba(239,83,80,0.1)!important}
+        .s-cell.flash{animation:cellFlash 0.45s ease}
+        @keyframes cellFlash{0%{background:rgba(102,187,106,0.3)}100%{background:rgba(255,255,255,0.022)}}
+        .numpad{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;margin-bottom:4px}
+        .numpad button{padding:10px 2px;border-radius:7px;border:1px solid var(--gb);background:var(--glass);color:var(--text);font-family:var(--mono);font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.14s}
+        .numpad button:hover{background:rgba(79,195,247,0.1);border-color:var(--accent);color:var(--accent)}
+
+        /* PYRAMID */
+        .pyramid-wrap{display:flex;flex-direction:column;align-items:center;gap:5px;margin-bottom:16px;padding:12px 0;overflow-x:auto}
+        .pyr-row{display:flex;gap:5px}
+        .pyr-cell{width:56px;height:46px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-family:var(--mono);font-size:0.95rem;font-weight:600;border:1.5px solid var(--gb);background:var(--glass);cursor:pointer;transition:all 0.15s;color:var(--text);user-select:none}
+        .pyr-cell.given-p{color:var(--accent2);background:rgba(79,195,247,0.07);border-color:rgba(79,195,247,0.2);cursor:default}
+        .pyr-cell.sel-p{border-color:var(--accent);background:rgba(79,195,247,0.15)}
+        .pyr-cell.err-p{border-color:var(--red);color:var(--red);background:rgba(239,83,80,0.08)}
+        .pyr-cell.ok-p{border-color:var(--green);color:var(--green);background:rgba(102,187,106,0.08)}
+
+        /* WORD SEARCH */
+        .ws-layout{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+        .ws-grid-wrap{overflow-x:auto}
+        .ws-grid{display:grid;gap:2px;user-select:none}
+        .ws-cell{width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:0.85rem;font-weight:600;border-radius:5px;cursor:pointer;background:rgba(255,255,255,0.025);color:var(--text);transition:all 0.12s;text-transform:uppercase}
+        .ws-cell:hover{background:rgba(79,195,247,0.1)}
+        .ws-cell.ws-sel{background:rgba(79,195,247,0.25);color:#fff}
+        .ws-cell.ws-found{background:rgba(102,187,106,0.2);color:var(--green)}
+        .ws-cell.ws-found.ws-sel{background:rgba(102,187,106,0.35)}
+        .ws-words{min-width:140px;display:flex;flex-direction:column;gap:6px}
+        .ws-words h4{font-family:var(--sans);font-size:0.72rem;font-weight:700;color:var(--text2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;padding-bottom:6px;border-bottom:1px solid var(--gb)}
+        .ws-word{font-family:var(--mono);font-size:0.78rem;color:var(--text2);padding:3px 8px;border-radius:5px;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.05em}
+        .ws-word.ws-done{color:var(--green);text-decoration:line-through;opacity:0.6}
+
+        /* BRIDGES */
+        .bridges-canvas-wrap{display:flex;justify-content:center;overflow:auto;margin-bottom:12px}
+        canvas.bridges-canvas{border-radius:10px;cursor:pointer}
+
+        /* STAR SUDOKU */
+        .star-canvas-wrap{display:flex;justify-content:center;overflow:auto;margin-bottom:12px}
+        canvas.star-canvas{border-radius:10px;cursor:pointer}
+        .star-numpad{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:4px}
+        .star-numpad button{padding:9px 2px;border-radius:7px;border:1px solid var(--gb);background:var(--glass);color:var(--text);font-family:var(--mono);font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.14s}
+        .star-numpad button:hover{background:rgba(179,157,219,0.12);border-color:var(--violet);color:var(--violet)}
+
+        /* MAZE */
+        .maze-canvas-wrap{display:flex;justify-content:center;overflow:auto;margin-bottom:12px}
+        canvas.maze-canvas{border-radius:10px;cursor:default}
+        .maze-instructions{text-align:center;font-size:0.68rem;color:var(--text3);margin-bottom:10px;font-family:var(--mono);font-weight:300}
+
+        /* PRINT */
+        .print-only{display:none}
+        @media print{
+            @page{size:letter portrait;margin:0.7in}
+            *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+            body{background:#fff!important;color:#000!important}
+            #ambient{display:none}
+            .page:not(.active){display:none!important}
+            .page.active{display:block!important}
+            .puzzle-topbar,.diff-slider-wrap,.action-row,.status-bar,.numpad,.star-numpad,.meta-row,.maze-instructions,.ws-words h4{display:none!important}
+            .puzzle-card-shell{background:#fff!important;border:none!important;box-shadow:none!important;backdrop-filter:none!important;padding:0!important}
+            .print-only{display:block!important}
+            .print-header-block{text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:22px}
+            .print-header-block h2{font-family:Helvetica,sans-serif;font-size:22pt;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase}
+            .print-header-block p{font-family:Georgia,serif;font-size:9.5pt;color:#555;margin-top:4px;font-style:italic}
+            .print-header-block .diff-print{display:inline-block;margin-top:7px;font-size:8pt;font-weight:bold;letter-spacing:0.18em;text-transform:uppercase;border:1.5px solid #000;padding:1px 9px;border-radius:3px}
+            .print-answer-page{page-break-before:always}
+            .print-answer-label{text-align:center;font-size:12pt;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase;font-style:italic;margin-bottom:18px;color:#333;font-family:Helvetica,sans-serif}
+            .sudoku-board-wrap{display:flex;justify-content:center}
+            .sudoku-board{grid-template-columns:repeat(9,46pt)!important;grid-template-rows:repeat(9,46pt)!important;background:#ccc!important;border:3px solid #000!important;border-radius:0!important}
+            .s-cell{width:46pt!important;height:46pt!important;font-size:16pt!important;background:#fff!important;color:#000!important;border-radius:0}
+            .s-cell.given{color:#000!important;font-weight:bold!important;background:#f0f4ff!important}
+            .s-cell.conflict{color:#000!important;background:#fff!important}
+            .s-cell[data-col="2"],.s-cell[data-col="5"]{border-right:2.5px solid #000!important}
+            .s-cell[data-row="2"],.s-cell[data-row="5"]{border-bottom:2.5px solid #000!important}
+            .s-cell.answer-fill{color:#666!important;font-style:italic!important;font-weight:normal!important}
+            .pyr-cell{background:#fff!important;border-color:#999!important;color:#000!important;border-radius:4px!important}
+            .pyr-cell.given-p{background:#eef4ff!important;color:#000!important;font-weight:bold!important}
+            .ws-cell{background:#fff!important;color:#000!important;border-radius:0!important;font-size:10pt!important;width:22pt!important;height:22pt!important}
+            .ws-cell.ws-found{background:#fff!important;color:#000!important}
+            .ws-word{color:#000!important;font-size:8pt!important}
+            .ws-word.ws-done{text-decoration:none!important;color:#888!important}
+            .ws-words{border-left:1px solid #ccc;padding-left:12px}
+            .ws-grid{gap:0!important}
+            canvas{display:block;margin:0 auto}
+        }
+
+        .fade-in{animation:fadeIn 0.3s ease}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+        @media(max-width:600px){
+            .sudoku-board{grid-template-columns:repeat(9,38px)!important;grid-template-rows:repeat(9,38px)!important}
+            .s-cell{width:38px!important;height:38px!important;font-size:1rem!important}
+            .ws-cell{width:28px!important;height:28px!important;font-size:0.72rem!important}
+        }
+    </style>
+</head>
+<body>
+<div id="ambient"></div>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+    <div class="home-header">
+        <div class="eyebrow">// brain.puzzles.app</div>
+        <h1>Brain <span>Puzzles</span></h1>
+        <p>Pick a puzzle &mdash; slide the difficulty &mdash; generate, solve, and print.</p>
+    </div>
+    <div class="puzzle-grid">
+        <div class="puzzle-card" style="--card-color:rgba(79,195,247,0.1);--card-accent:#4fc3f7" onclick="goTo('sudoku')">
+            <div class="card-icon"><span class="material-icons">grid_on</span></div>
+            <h3>Sudoku</h3>
+            <p>Fill the 9×9 grid so every row, column, and 3×3 box contains the digits 1–9.</p>
+            <div class="card-tags"><span class="tag">Logic</span><span class="tag">Numbers</span><span class="tag">Classic</span></div>
+        </div>
+        <div class="puzzle-card" style="--card-color:rgba(255,213,79,0.1);--card-accent:#ffd54f" onclick="goTo('pyramid')">
+            <div class="card-icon"><span class="material-icons">change_history</span></div>
+            <h3>Number Pyramid</h3>
+            <p>Each block is the sum of the two blocks below it. Fill in the missing values.</p>
+            <div class="card-tags"><span class="tag">Addition</span><span class="tag">Deduction</span></div>
+        </div>
+        <div class="puzzle-card" style="--card-color:rgba(102,187,106,0.1);--card-accent:#66bb6a" onclick="goTo('wordsearch')">
+            <div class="card-icon"><span class="material-icons">search</span></div>
+            <h3>Word Search</h3>
+            <p>Hidden words run in all eight directions. Find every word on the list.</p>
+            <div class="card-tags"><span class="tag">Words</span><span class="tag">Visual</span></div>
+        </div>
+        <div class="puzzle-card" style="--card-color:rgba(244,143,177,0.1);--card-accent:#f48fb1" onclick="goTo('bridges')">
+            <div class="card-icon"><span class="material-icons">hub</span></div>
+            <h3>Bridges</h3>
+            <p>Connect numbered islands with bridges so each island has exactly the right count.</p>
+            <div class="card-tags"><span class="tag">Graph</span><span class="tag">Logic</span></div>
+        </div>
+        <div class="puzzle-card" style="--card-color:rgba(179,157,219,0.1);--card-accent:#b39ddb" onclick="goTo('starsudoku')">
+            <div class="card-icon"><span class="material-icons">star</span></div>
+            <h3>Star Sudoku</h3>
+            <p>Six-pointed star grid — place digits 1–6 in every triangle with no repeats on any line.</p>
+            <div class="card-tags"><span class="tag">Logic</span><span class="tag">Geometry</span><span class="tag">Advanced</span></div>
+        </div>
+        <div class="puzzle-card" style="--card-color:rgba(77,182,172,0.1);--card-accent:#4db6ac" onclick="goTo('maze')">
+            <div class="card-icon"><span class="material-icons">route</span></div>
+            <h3>Mazes</h3>
+            <p>Navigate from Start to Finish through the labyrinth. Larger mazes at higher levels.</p>
+            <div class="card-tags"><span class="tag">Spatial</span><span class="tag">Navigation</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- SUDOKU -->
+<div class="page puzzle-page" id="page-sudoku">
+    <div class="puzzle-topbar">
+        <button class="btn-back" onclick="goTo('home')"><span class="material-icons">arrow_back</span>Back</button>
+        <div class="puzzle-title-area"><h2>Sudoku</h2><div class="sub">// classic 9×9 number placement</div></div>
+    </div>
+    <div class="diff-slider-wrap" id="sudoku-slider-wrap"></div>
+    <div class="puzzle-card-shell fade-in">
+        <div class="print-only" id="sudoku-print-header"></div>
+        <div class="meta-row">
+            <div class="meta-left">
+                <div class="mistake-dots"><div class="mdot" id="sm1"></div><div class="mdot" id="sm2"></div><div class="mdot" id="sm3"></div></div>
+                <span class="diff-label" id="sudoku-diff-label">—</span>
+            </div>
+            <span class="timer-display" id="sudoku-timer">00:00</span>
+        </div>
+        <div class="sudoku-board-wrap"><div class="sudoku-board" id="sudoku-board"></div></div>
+        <div class="numpad" id="sudoku-numpad"></div>
+        <div class="action-row">
+            <button class="act-btn" onclick="sudoku.clear()">Clear</button>
+            <button class="act-btn solve-btn" onclick="sudoku.solve()">Solve</button>
+            <button class="act-btn print-btn" id="sudoku-print-btn" onclick="window.print()" disabled>Print</button>
+        </div>
+        <div class="print-only" id="sudoku-answer-section"></div>
+        <div class="status-bar" id="sudoku-status">Set difficulty and generate a puzzle</div>
+    </div>
+</div>
+
+<!-- PYRAMID -->
+<div class="page puzzle-page" id="page-pyramid">
+    <div class="puzzle-topbar">
+        <button class="btn-back" onclick="goTo('home')"><span class="material-icons">arrow_back</span>Back</button>
+        <div class="puzzle-title-area"><h2>Number Pyramid</h2><div class="sub">// each block = sum of two below</div></div>
+    </div>
+    <div class="diff-slider-wrap" id="pyramid-slider-wrap"></div>
+    <div class="puzzle-card-shell fade-in">
+        <div class="print-only" id="pyramid-print-header"></div>
+        <div class="meta-row">
+            <div class="meta-left"><span class="diff-label" id="pyramid-diff-label">—</span></div>
+            <span class="timer-display" id="pyramid-timer">00:00</span>
+        </div>
+        <div class="pyramid-wrap" id="pyramid-wrap"></div>
+        <div class="action-row">
+            <button class="act-btn" onclick="pyramid.clear()">Clear</button>
+            <button class="act-btn solve-btn" onclick="pyramid.solve()">Solve</button>
+            <button class="act-btn print-btn" id="pyramid-print-btn" onclick="window.print()" disabled>Print</button>
+        </div>
+        <div class="print-only" id="pyramid-answer-section"></div>
+        <div class="status-bar" id="pyramid-status">Set difficulty and generate a puzzle</div>
+    </div>
+</div>
+
+<!-- WORD SEARCH -->
+<div class="page puzzle-page" id="page-wordsearch">
+    <div class="puzzle-topbar">
+        <button class="btn-back" onclick="goTo('home')"><span class="material-icons">arrow_back</span>Back</button>
+        <div class="puzzle-title-area"><h2>Word Search</h2><div class="sub">// find all hidden words</div></div>
+    </div>
+    <div class="diff-slider-wrap" id="ws-slider-wrap"></div>
+    <div class="puzzle-card-shell fade-in">
+        <div class="print-only" id="ws-print-header"></div>
+        <div class="meta-row">
+            <div class="meta-left"><span class="diff-label" id="ws-diff-label">—</span></div>
+            <span class="timer-display" id="ws-timer">00:00</span>
+        </div>
+        <div class="ws-layout">
+            <div class="ws-grid-wrap"><div class="ws-grid" id="ws-grid"></div></div>
+            <div class="ws-words" id="ws-words-list"><h4>Find these words</h4></div>
+        </div>
+        <div class="action-row">
+            <button class="act-btn" onclick="wordsearch.clear()">Reset</button>
+            <button class="act-btn solve-btn" onclick="wordsearch.solve()">Reveal All</button>
+            <button class="act-btn print-btn" id="ws-print-btn" onclick="window.print()" disabled>Print</button>
+        </div>
+        <div class="status-bar" id="ws-status">Set difficulty and generate a puzzle</div>
+    </div>
+</div>
+
+<!-- BRIDGES -->
+<div class="page puzzle-page" id="page-bridges">
+    <div class="puzzle-topbar">
+        <button class="btn-back" onclick="goTo('home')"><span class="material-icons">arrow_back</span>Back</button>
+        <div class="puzzle-title-area"><h2>Bridges</h2><div class="sub">// hashiwokakero — connect all islands</div></div>
+    </div>
+    <div class="diff-slider-wrap" id="bridges-slider-wrap"></div>
+    <div class="puzzle-card-shell fade-in">
+        <div class="print-only" id="bridges-print-header"></div>
+        <div class="meta-row">
+            <div class="meta-left"><span class="diff-label" id="bridges-diff-label">—</span></div>
+            <span class="timer-display" id="bridges-timer">00:00</span>
+        </div>
+        <div class="bridges-canvas-wrap"><canvas class="bridges-canvas" id="bridges-canvas"></canvas></div>
+        <div class="action-row">
+            <button class="act-btn" onclick="bridges.clear()">Clear</button>
+            <button class="act-btn solve-btn" onclick="bridges.solve()">Solve</button>
+            <button class="act-btn print-btn" id="bridges-print-btn" onclick="window.print()" disabled>Print</button>
+        </div>
+        <div class="status-bar" id="bridges-status">Set difficulty and generate a puzzle</div>
+    </div>
+</div>
+
+<!-- STAR SUDOKU -->
+<div class="page puzzle-page" id="page-starsudoku">
+    <div class="puzzle-topbar">
+        <button class="btn-back" onclick="goTo('home')"><span class="material-icons">arrow_back</span>Back</button>
+        <div class="puzzle-title-area"><h2>Star Sudoku</h2><div class="sub">// six-pointed star, digits 1–6</div></div>
+    </div>
+    <div class="diff-slider-wrap" id="star-slider-wrap"></div>
+    <div class="puzzle-card-shell fade-in">
+        <div class="print-only" id="star-print-header"></div>
+        <div class="meta-row">
+            <div class="meta-left"><span class="diff-label" id="star-diff-label">—</span></div>
+            <span class="timer-display" id="star-timer">00:00</span>
+        </div>
+        <div class="star-canvas-wrap"><canvas class="star-canvas" id="star-canvas" width="480" height="480"></canvas></div>
+        <div class="star-numpad" id="star-numpad"></div>
+        <div class="action-row">
+            <button class="act-btn" onclick="starsudoku.clear()">Clear</button>
+            <button class="act-btn solve-btn" onclick="starsudoku.solve()">Solve</button>
+            <button class="act-btn print-btn" id="star-print-btn" onclick="window.print()" disabled>Print</button>
+        </div>
+        <div class="status-bar" id="star-status">Set difficulty and generate a puzzle</div>
+    </div>
+</div>
+
+<!-- MAZE -->
+<div class="page puzzle-page" id="page-maze">
+    <div class="puzzle-topbar">
+        <button class="btn-back" onclick="goTo('home')"><span class="material-icons">arrow_back</span>Back</button>
+        <div class="puzzle-title-area"><h2>Maze</h2><div class="sub">// navigate from start to finish</div></div>
+    </div>
+    <div class="diff-slider-wrap" id="maze-slider-wrap"></div>
+    <div class="puzzle-card-shell fade-in">
+        <div class="print-only" id="maze-print-header"></div>
+        <div class="meta-row">
+            <div class="meta-left"><span class="diff-label" id="maze-diff-label">—</span></div>
+            <span class="timer-display" id="maze-timer">00:00</span>
+        </div>
+        <div class="maze-instructions">Arrow keys or WASD to move. Click the maze to focus.</div>
+        <div class="maze-canvas-wrap"><canvas class="maze-canvas" id="maze-canvas" tabindex="0"></canvas></div>
+        <div class="action-row">
+            <button class="act-btn" onclick="maze.reset()">Reset</button>
+            <button class="act-btn solve-btn" onclick="maze.solve()">Show Path</button>
+            <button class="act-btn print-btn" id="maze-print-btn" onclick="window.print()" disabled>Print</button>
+        </div>
+        <div class="status-bar" id="maze-status">Set difficulty and generate a maze</div>
+    </div>
+</div>
+
+<script>
+    /* ═══════════════════════════════════════════════════════
+       ROUTING
+    ═══════════════════════════════════════════════════════ */
+    const pageMap={home:'page-home',sudoku:'page-sudoku',pyramid:'page-pyramid',wordsearch:'page-wordsearch',bridges:'page-bridges',starsudoku:'page-starsudoku',maze:'page-maze'};
+    function goTo(name){
+        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+        const el=document.getElementById(pageMap[name]);
+        if(el){el.classList.add('active');window.scrollTo(0,0);}
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       SHARED UTILITIES
+    ═══════════════════════════════════════════════════════ */
+    function makeTimer(id){
+        let sec=0,iv=null;
+        return{
+            start(){clearInterval(iv);sec=0;iv=setInterval(()=>{sec++;const m=String(Math.floor(sec/60)).padStart(2,'0'),s=String(sec%60).padStart(2,'0');document.getElementById(id).textContent=`${m}:${s}`;},1000);},
+            stop(){clearInterval(iv);},
+            reset(){clearInterval(iv);sec=0;document.getElementById(id).textContent='00:00';}
+        };
+    }
+    function setStatus(id,msg,cls=''){const el=document.getElementById(id);if(el){el.textContent=msg;el.className='status-bar '+cls;}}
+    function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+    function buildPrintHeader(cid,title,lvl,sub=''){
+        const el=document.getElementById(cid);
+        if(el)el.innerHTML=`<div class="print-header-block"><h2>${title}</h2>${sub?`<p>${sub}</p>`:''}<div class="diff-print">Level ${lvl}</div></div>`;
+    }
+
+    /* ─── DIFFICULTY SLIDER FACTORY ─────────────────────────────────────────────
+       levelColor(n): green→yellow→orange→red across 1-10
+       levelLabel(n): Beginner / Novice / … / Extreme
+    ═══════════════════════════════════════════════════════ */
+    function levelColor(n){
+        // 1=green, 5=gold, 7=orange, 10=red
+        if(n<=1)return'#66bb6a';
+        if(n<=3)return`hsl(${120-(n-1)*20},65%,55%)`;
+        if(n<=5)return`hsl(${80-(n-3)*20},85%,55%)`;
+        if(n<=7)return`hsl(${40-(n-5)*10},90%,58%)`;
+        return`hsl(${20-(n-7)*7},90%,54%)`;
+    }
+    const LEVEL_LABELS=['','Beginner','Novice','Easy','Moderate','Challenging','Tricky','Hard','Expert','Master','Extreme'];
+
+    function makeSlider(wrapperId, accentVar, onGenerate){
+        const wrap=document.getElementById(wrapperId);
+        if(!wrap)return;
+        let level=3;
+        wrap.innerHTML=`
+    <div class="diff-slider-top">
+      <span class="diff-slider-label">Difficulty</span>
+      <div class="diff-level-display">
+        <span class="diff-level-num" id="${wrapperId}-num">3</span>
+        <span class="diff-level-badge" id="${wrapperId}-badge">Easy</span>
+      </div>
+    </div>
+    <div class="slider-track">
+      <div class="slider-fill" id="${wrapperId}-fill" style="width:22%"></div>
+      <input type="range" class="diff-slider" min="1" max="10" value="3" id="${wrapperId}-input">
+    </div>
+    <div class="slider-pips">
+      ${Array.from({length:10},(_,i)=>`<span class="slider-pip">${i+1}</span>`).join('')}
+    </div>`;
+
+        const input=document.getElementById(`${wrapperId}-input`);
+        const fill=document.getElementById(`${wrapperId}-fill`);
+        const numEl=document.getElementById(`${wrapperId}-num`);
+        const badge=document.getElementById(`${wrapperId}-badge`);
+
+        function update(v){
+            level=v;
+            const pct=((v-1)/9)*100;
+            const col=levelColor(v);
+            fill.style.width=pct+'%';
+            fill.style.background=col;
+            numEl.textContent=v;
+            numEl.style.color=col;
+            badge.textContent=LEVEL_LABELS[v];
+            wrap.style.setProperty('--slider-color',col);
+            onGenerate(v);
+        }
+
+        input.addEventListener('input',e=>update(+e.target.value));
+        // Init display without generating
+        const col=levelColor(level);
+        fill.style.width='22%'; fill.style.background=col;
+        numEl.style.color=col; badge.textContent=LEVEL_LABELS[level];
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       ██  SUDOKU
+    ═══════════════════════════════════════════════════════ */
+    const sudoku=(()=>{
+        let board=Array(81).fill(0),sol=Array(81).fill(0),given=Array(81).fill(false);
+        let selected=-1,active=false,currentLevel=3;
+        const timer=makeTimer('sudoku-timer');
+
+        function isValid(b,idx,val){
+            const r=Math.floor(idx/9),c=idx%9;
+            for(let i=0;i<9;i++){if(b[r*9+i]===val&&r*9+i!==idx)return false;if(b[i*9+c]===val&&i*9+c!==idx)return false;}
+            const br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;
+            for(let rr=br;rr<br+3;rr++)for(let cc=bc;cc<bc+3;cc++)if(b[rr*9+cc]===val&&rr*9+cc!==idx)return false;
+            return true;
+        }
+        function fillB(b){const e=b.indexOf(0);if(e===-1)return true;for(const n of shuffle([1,2,3,4,5,6,7,8,9])){if(isValid(b,e,n)){b[e]=n;if(fillB(b))return true;b[e]=0;}}return false;}
+        function countSol(b,lim=2){const e=b.indexOf(0);if(e===-1)return 1;let cnt=0;for(let n=1;n<=9;n++){if(isValid(b,e,n)){b[e]=n;cnt+=countSol(b,lim);b[e]=0;if(cnt>=lim)return cnt;}}return cnt;}
+        function solveB(b){const e=b.indexOf(0);if(e===-1)return true;for(let n=1;n<=9;n++){if(isValid(b,e,n)){b[e]=n;if(solveB(b))return true;b[e]=0;}}return false;}
+
+        // Level 1=48 clues, Level 10=17 clues. Each step reduces by ~3.4
+        function cluesToRemove(lv){ return Math.round(48 - (lv-1)*3.4); }
+
+        function generate(lv){
+            currentLevel=lv;
+            const label=LEVEL_LABELS[lv];
+            document.getElementById('sudoku-diff-label').textContent=label+' · Lv'+lv;
+            const full=Array(81).fill(0); fillB(full); sol=[...full];
+            const target=Math.max(17,Math.min(48,cluesToRemove(lv)));
+            const idxs=shuffle([...Array(81).keys()]); const puzzle=[...full];
+            let rem=0;
+            for(const idx of idxs){
+                if(81-rem<=target)break;
+                const v=puzzle[idx];puzzle[idx]=0;
+                if(countSol([...puzzle])!==1)puzzle[idx]=v;else rem++;
+            }
+            board=[...puzzle];given=board.map(v=>v!==0);
+            selected=-1;active=true;timer.start();
+            renderBoard();setStatus('sudoku-status','Select a cell and enter a number.');
+            document.getElementById('sudoku-print-btn').disabled=false;
+            buildPrintHeader('sudoku-print-header','Sudoku',lv,'Fill so every row, column, and 3×3 box contains the digits 1–9.');
+            buildAnswerSection();
+        }
+
+        function buildAnswerSection(){
+            const cells=board.map((v,i)=>given[i]
+                ?`<div class="s-cell given" data-row="${Math.floor(i/9)}" data-col="${i%9}">${v}</div>`
+                :`<div class="s-cell answer-fill" data-row="${Math.floor(i/9)}" data-col="${i%9}" style="color:#666;font-style:italic">${sol[i]}</div>`).join('');
+            document.getElementById('sudoku-answer-section').innerHTML=`<div class="print-answer-page"><div class="print-answer-label">— Answer Key —</div><div class="sudoku-board-wrap"><div class="sudoku-board">${cells}</div></div></div>`;
+        }
+
+        function renderBoard(){
+            const el=document.getElementById('sudoku-board');el.innerHTML='';
+            for(let i=0;i<81;i++){
+                const c=document.createElement('div');c.className='s-cell';c.tabIndex=0;
+                c.dataset.row=Math.floor(i/9);c.dataset.col=i%9;
+                if(board[i])c.textContent=board[i];
+                if(given[i])c.classList.add('given');
+                c.addEventListener('click',()=>sel(i));
+                c.addEventListener('keydown',onKey);
+                el.appendChild(c);
+            }
+        }
+
+        function updateBoard(){
+            document.querySelectorAll('#sudoku-board .s-cell').forEach((c,i)=>{
+                const r=Math.floor(i/9),col=i%9;
+                c.className='s-cell';if(given[i])c.classList.add('given');
+                c.textContent=board[i]||'';
+                if(i===selected)c.classList.add('selected');
+                else if(selected!==-1){
+                    const sr=Math.floor(selected/9),sc=selected%9,sb=Math.floor(sr/3)*3,sbc=Math.floor(sc/3)*3;
+                    if(r===sr||col===sc||(r>=sb&&r<sb+3&&col>=sbc&&col<sbc+3))c.classList.add('hl');
+                    if(board[selected]&&board[i]===board[selected]&&i!==selected)c.classList.add('same');
+                }
+                if(board[i]&&!isValid(board,i,board[i]))c.classList.add('conflict');
+            });
+        }
+
+        function sel(i){selected=i;updateBoard();document.querySelectorAll('#sudoku-board .s-cell')[i].focus();}
+        function onKey(e){
+            if(selected===-1)return;
+            const r=Math.floor(selected/9),c=selected%9;
+            if(e.key==='ArrowUp'&&r>0){sel(selected-9);e.preventDefault();}
+            else if(e.key==='ArrowDown'&&r<8){sel(selected+9);e.preventDefault();}
+            else if(e.key==='ArrowLeft'&&c>0){sel(selected-1);e.preventDefault();}
+            else if(e.key==='ArrowRight'&&c<8){sel(selected+1);e.preventDefault();}
+            else if(e.key>='1'&&e.key<='9')enter(+e.key);
+            else if(e.key==='Backspace'||e.key==='Delete'||e.key==='0')enter(0);
+        }
+        function enter(v){
+            if(selected===-1||given[selected])return;
+            if(!active){active=true;timer.start();}
+            board[selected]=v;updateBoard();checkWin();
+        }
+        function checkWin(){
+            if(board.indexOf(0)!==-1)return;
+            for(let i=0;i<81;i++)if(!isValid(board,i,board[i]))return;
+            timer.stop();active=false;setStatus('sudoku-status','Puzzle complete! ✦','win');
+        }
+        function buildNumpad(){
+            const pad=document.getElementById('sudoku-numpad');
+            for(let n=1;n<=9;n++){const b=document.createElement('button');b.textContent=n;b.onclick=()=>enter(n);pad.appendChild(b);}
+        }
+        return{
+            init(){buildNumpad();makeSlider('sudoku-slider-wrap','--accent',lv=>generate(lv));},
+            clear(){board=board.map((v,i)=>given[i]?v:0);updateBoard();setStatus('sudoku-status','Board cleared.');},
+            solve(){
+                const cp=[...board];
+                if(solveB(cp)){
+                    const cells=document.querySelectorAll('#sudoku-board .s-cell');
+                    cp.forEach((v,i)=>{if(!given[i]&&board[i]===0)setTimeout(()=>{board[i]=v;cells[i].textContent=v;cells[i].classList.add('flash');},i*6);});
+                    setTimeout(()=>{timer.stop();setStatus('sudoku-status','Solved! ✦','win');},81*6+300);
+                }else setStatus('sudoku-status','No solution found.','err');
+            }
+        };
+    })();
+
+    /* ═══════════════════════════════════════════════════════
+       ██  NUMBER PYRAMID
+    ═══════════════════════════════════════════════════════ */
+    const pyramid=(()=>{
+        let vals=[],givenMask=[],sol=[],rows=5,selected=-1,active=false;
+        const timer=makeTimer('pyramid-timer');
+
+        // Level 1 → 5 rows, 25% hidden. Level 10 → 10 rows, 85% hidden
+        function levelToRows(lv){return Math.round(5+(lv-1)*0.6);}  // 5..10
+        function levelToHide(lv){return 0.25+(lv-1)*0.068;}         // 0.25..0.86
+
+        function cellIndex(r,c){return r*(r+1)/2+c;}
+
+        function generate(lv){
+            rows=levelToRows(lv);
+            const hidePct=levelToHide(lv);
+            document.getElementById('pyramid-diff-label').textContent=LEVEL_LABELS[lv]+' · Lv'+lv;
+
+            const total=rows*(rows+1)/2;
+            sol=Array(total).fill(0);
+
+            // Fill bottom row with random values scaled by level
+            const maxBase=Math.min(9,2+lv);
+            const base=total-rows;
+            for(let c=0;c<rows;c++) sol[base+c]=Math.floor(Math.random()*maxBase)+1;
+
+            // Fill up
+            let b=base;
+            for(let r=rows-1;r>0;r--){
+                const rs=b-r;
+                for(let c=0;c<r;c++) sol[rs+c]=sol[b+c]+sol[b+c+1];
+                b=rs;
+            }
+            if(sol[0]>99999){generate(lv);return;}
+
+            givenMask=sol.map(()=>Math.random()>hidePct);
+            givenMask[0]=true;
+            // bottom row: slightly more visible at low levels
+            for(let i=total-rows;i<total;i++) if(Math.random()>hidePct*0.6) givenMask[i]=true;
+
+            vals=sol.map((v,i)=>givenMask[i]?v:0);
+            selected=-1;active=true;timer.start();
+            render();setStatus('pyramid-status','Click a cell and type a number.');
+            document.getElementById('pyramid-print-btn').disabled=false;
+            buildPrintHeader('pyramid-print-header','Number Pyramid',lv,'Each block equals the sum of the two blocks below it.');
+            buildAnswerSection();
+        }
+
+        function buildAnswerSection(){
+            document.getElementById('pyramid-answer-section').innerHTML=`<div class="print-answer-page"><div class="print-answer-label">— Answer Key —</div><div id="pyr-ans-wrap" style="display:flex;flex-direction:column;align-items:center;gap:5px"></div></div>`;
+            const wrap=document.getElementById('pyr-ans-wrap');
+            for(let r=0;r<rows;r++){
+                const rowEl=document.createElement('div');rowEl.style.cssText='display:flex;gap:5px';
+                for(let c=0;c<=r;c++){
+                    const idx=cellIndex(r,c);
+                    const cell=document.createElement('div');
+                    cell.style.cssText=`width:56px;height:46px;display:flex;align-items:center;justify-content:center;border:1.5px solid #999;border-radius:4px;font-family:monospace;font-size:0.9rem;font-weight:600;color:${givenMask[idx]?'#000':'#555'};font-style:${givenMask[idx]?'normal':'italic'}`;
+                    cell.textContent=sol[idx];rowEl.appendChild(cell);
+                }
+                wrap.appendChild(rowEl);
+            }
+        }
+
+        function render(){
+            const wrap=document.getElementById('pyramid-wrap');wrap.innerHTML='';
+            for(let r=0;r<rows;r++){
+                const rowEl=document.createElement('div');rowEl.className='pyr-row';
+                for(let c=0;c<=r;c++){
+                    const idx=cellIndex(r,c);
+                    const cell=document.createElement('div');cell.className='pyr-cell';
+                    if(givenMask[idx])cell.classList.add('given-p');
+                    if(vals[idx])cell.textContent=vals[idx];
+                    if(!givenMask[idx]) cell.addEventListener('click',()=>selCell(r,c));
+                    if(selected===r*100+c)cell.classList.add('sel-p');
+                    rowEl.appendChild(cell);
+                }
+                wrap.appendChild(rowEl);
+            }
+            wrap.tabIndex=0;
+            wrap.onkeydown=e=>{
+                if(selected===-1)return;
+                const v=parseInt(e.key);
+                if(!isNaN(v)){enterDigit(v);}
+                if(e.key==='Backspace')enterDigit('clear');
+                e.preventDefault();
+            };
+        }
+
+        function selCell(r,c){
+            const idx=cellIndex(r,c);if(givenMask[idx])return;
+            selected=r*100+c;highlight(r,c);
+        }
+
+        function highlight(selR,selC){
+            document.querySelectorAll('#pyramid-wrap .pyr-row').forEach((rowEl,r)=>{
+                const cells=rowEl.querySelectorAll('.pyr-cell');
+                for(let c=0;c<=r;c++){cells[c].classList.remove('sel-p');if(r===selR&&c===selC)cells[c].classList.add('sel-p');}
+            });
+            document.getElementById('pyramid-wrap').focus();
+        }
+
+        function enterDigit(v){
+            if(selected===-1)return;
+            const r=Math.floor(selected/100),c=selected%100;
+            const idx=cellIndex(r,c);if(givenMask[idx])return;
+            if(!active){active=true;timer.start();}
+            if(v==='clear')vals[idx]=0;
+            else{const cur=vals[idx]||0;const next=cur*10+v;vals[idx]=next>999999?v:next;}
+            validateAndRender();
+        }
+
+        function validateAndRender(){
+            document.querySelectorAll('#pyramid-wrap .pyr-row').forEach((rowEl,r)=>{
+                const cells=rowEl.querySelectorAll('.pyr-cell');
+                for(let c=0;c<=r;c++){
+                    const idx=cellIndex(r,c);
+                    cells[c].classList.remove('err-p','ok-p','sel-p');
+                    cells[c].textContent=vals[idx]||'';
+                    if(givenMask[idx]){cells[c].classList.add('given-p');continue;}
+                    if(selected===r*100+c)cells[c].classList.add('sel-p');
+                    if(vals[idx]){if(vals[idx]===sol[idx])cells[c].classList.add('ok-p');else cells[c].classList.add('err-p');}
+                }
+            });
+            let win=true;for(let i=0;i<sol.length;i++)if(vals[i]!==sol[i]){win=false;break;}
+            if(win){timer.stop();active=false;setStatus('pyramid-status','Pyramid complete! ✦','win');}
+        }
+
+        return{
+            init(){makeSlider('pyramid-slider-wrap','--gold',lv=>generate(lv));},
+            clear(){vals=vals.map((v,i)=>givenMask[i]?v:0);selected=-1;render();setStatus('pyramid-status','Board cleared.');},
+            solve(){vals=[...sol];selected=-1;validateAndRender();timer.stop();setStatus('pyramid-status','Solved! ✦','win');}
+        };
+    })();
+
+    /* ═══════════════════════════════════════════════════════
+       ██  WORD SEARCH
+    ═══════════════════════════════════════════════════════ */
+    const wordsearch=(()=>{
+        const POOL=['ALGORITHM','BINARY','CIPHER','DEBUG','ENCODE','FUNCTION','GRAPH','HASH',
+            'INDEX','JAVA','KERNEL','LOOP','MATRIX','NODE','OBJECT','PARSE','QUEUE','RECURSION',
+            'STACK','TOKEN','UNION','VECTOR','WIDGET','XPATH','YIELD','ZERO','ARRAY','BRANCH',
+            'CLASS','DATA','ERROR','FIELD','GLOBAL','HEAP','INPUT','JSON','KEY','LAMBDA',
+            'METHOD','NULL','OUTPUT','POINTER','REGEX','SCOPE','TABLE','UPDATE','VALUE','WHILE',
+            'ASYNC','BUFFER','CACHE','DYNAMIC','RUNTIME','SYNTAX','THREAD','PACKET','SOCKET',
+            'MODULE','IMPORT','EXPORT','DEPLOY','SERVER','CLIENT','PROXY','ROUTER','STREAM',
+            'PIPELINE','ITERATOR','COMPILER','LINKER','DEBUGGER','PROFILER','MONITOR','CLUSTER'];
+
+        const DIRS_EASY=[[0,1],[1,0]];
+        const DIRS_ALL=[[0,1],[1,0],[0,-1],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
+
+        let grid=[],words=[],placed=[],found=new Set(),size=0;
+        let dragging=false,dragStart=null,dragCells=[];
+        const timer=makeTimer('ws-timer');
+
+        // Level 1: 10×10, 6 words, 2 dirs. Level 10: 24×24, 24 words, 8 dirs, reversed words
+        function levelToSize(lv){return Math.round(10+(lv-1)*1.6);}   // 10..24
+        function levelToWords(lv){return Math.round(6+(lv-1)*2);}     // 6..24
+        function levelToDirs(lv){return lv<=3?DIRS_EASY:DIRS_ALL;}
+        function levelAllowReverse(lv){return lv>=6;}
+
+        function generate(lv){
+            document.getElementById('ws-diff-label').textContent=LEVEL_LABELS[lv]+' · Lv'+lv;
+            size=levelToSize(lv);
+            grid=Array.from({length:size},()=>Array(size).fill(''));
+            const wcount=Math.min(levelToWords(lv),POOL.length);
+            words=shuffle([...POOL]).slice(0,wcount);
+            placed=[];found=new Set();
+            const dirs=levelToDirs(lv);
+            const allowRev=levelAllowReverse(lv);
+
+            for(const w of words){
+                let ok=false;
+                for(let tries=0;tries<300&&!ok;tries++){
+                    const useRev=allowRev&&Math.random()>0.5;
+                    const ww=useRev?[...w].reverse().join(''):w;
+                    const [dr,dc]=dirs[Math.floor(Math.random()*dirs.length)];
+                    const r=Math.floor(Math.random()*size),c=Math.floor(Math.random()*size);
+                    const cells=[];let valid=true;
+                    for(let i=0;i<ww.length;i++){
+                        const nr=r+dr*i,nc=c+dc*i;
+                        if(nr<0||nr>=size||nc<0||nc>=size){valid=false;break;}
+                        if(grid[nr][nc]&&grid[nr][nc]!==ww[i]){valid=false;break;}
+                        cells.push([nr,nc]);
+                    }
+                    if(valid){cells.forEach(([nr,nc],i)=>grid[nr][nc]=ww[i]);placed.push({word:w,cells,reversed:useRev});ok=true;}
+                }
+            }
+            const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            for(let r=0;r<size;r++)for(let c=0;c<size;c++)if(!grid[r][c])grid[r][c]=letters[Math.floor(Math.random()*26)];
+
+            renderGrid();renderWordList();
+            timer.start();setStatus('ws-status','Click and drag to select a word.');
+            document.getElementById('ws-print-btn').disabled=false;
+            buildPrintHeader('ws-print-header','Word Search',lv,'Find all the words hidden in the grid.');
+        }
+
+        function renderGrid(){
+            const el=document.getElementById('ws-grid');
+            const csz=size>18?26:size>13?30:34;
+            el.style.gridTemplateColumns=`repeat(${size},${csz}px)`;
+            el.innerHTML='';
+            for(let r=0;r<size;r++)for(let c=0;c<size;c++){
+                const cell=document.createElement('div');cell.className='ws-cell';
+                cell.dataset.r=r;cell.dataset.c=c;cell.textContent=grid[r][c];
+                cell.style.cssText=`width:${csz}px;height:${csz}px;font-size:${csz>28?0.82:0.68}rem`;
+                for(const p of placed)if(found.has(p.word)&&p.cells.some(([pr,pc])=>pr===r&&pc===c))cell.classList.add('ws-found');
+                cell.addEventListener('mousedown',e=>{dragging=true;dragStart=[r,c];dragCells=[[r,c]];highlightDrag();e.preventDefault();});
+                cell.addEventListener('mouseover',()=>{if(dragging){dragCells=getCellsBetween(dragStart,[r,c]);highlightDrag();}});
+                el.appendChild(cell);
+            }
+            document.addEventListener('mouseup',onMouseUp,{once:true});
+        }
+
+        function getCellsBetween([r1,c1],[r2,c2]){
+            const cells=[[r1,c1]];const dr=Math.sign(r2-r1),dc=Math.sign(c2-c1);
+            if(!dr&&!dc)return cells;
+            let r=r1+dr,c=c1+dc;while(r!==r2||c!==c2){cells.push([r,c]);r+=dr;c+=dc;}
+            cells.push([r2,c2]);return cells;
+        }
+        function highlightDrag(){
+            document.querySelectorAll('#ws-grid .ws-cell').forEach(c=>{
+                const r=+c.dataset.r,cc=+c.dataset.c;
+                c.classList.remove('ws-sel');
+                if(dragCells.some(([dr,dc])=>dr===r&&dc===cc))c.classList.add('ws-sel');
+            });
+        }
+        function onMouseUp(){
+            if(!dragging){dragging=false;return;}
+            dragging=false;
+            const str=dragCells.map(([r,c])=>grid[r][c]).join('');
+            const rev=str.split('').reverse().join('');
+            for(const p of placed){
+                if(!found.has(p.word)&&(p.word===str||p.word===rev)){
+                    found.add(p.word);
+                    p.cells.forEach(([r,c])=>{
+                        const cell=document.querySelector(`#ws-grid .ws-cell[data-r="${r}"][data-c="${c}"]`);
+                        if(cell)cell.classList.add('ws-found');
+                    });
+                    document.querySelectorAll('#ws-words-list .ws-word').forEach(el=>{if(el.textContent===p.word)el.classList.add('ws-done');});
+                    if(found.size===placed.length){timer.stop();setStatus('ws-status','All words found! ✦','win');}
+                    break;
+                }
+            }
+            document.querySelectorAll('#ws-grid .ws-cell.ws-sel').forEach(c=>c.classList.remove('ws-sel'));
+            dragCells=[];
+        }
+        function renderWordList(){
+            const el=document.getElementById('ws-words-list');
+            el.innerHTML='<h4>Find these words</h4>';
+            for(const w of words){
+                const div=document.createElement('div');div.className='ws-word';
+                if(found.has(w))div.classList.add('ws-done');
+                div.textContent=w;el.appendChild(div);
+            }
+        }
+        return{
+            init(){makeSlider('ws-slider-wrap','--green',lv=>generate(lv));},
+            clear(){found=new Set();renderGrid();renderWordList();setStatus('ws-status','Find all the hidden words.');},
+            solve(){placed.forEach(p=>found.add(p.word));renderGrid();renderWordList();timer.stop();setStatus('ws-status','All words revealed! ✦','win');}
+        };
+    })();
+
+    /* ═══════════════════════════════════════════════════════
+       ██  BRIDGES
+    ═══════════════════════════════════════════════════════ */
+    const bridges=(()=>{
+        let islands=[],bridges_=[],gridSize=0,active=false;
+        const timer=makeTimer('bridges-timer');
+        let canvas,ctx,selectedIsland=null;
+
+        // Level 1: 6×6 grid, 6 islands. Level 10: 14×14 grid, 22 islands
+        function levelToGrid(lv){return Math.round(6+(lv-1)*0.9);}
+        function levelToIslands(lv){return Math.round(6+(lv-1)*1.8);}
+
+        function generate(lv){
+            document.getElementById('bridges-diff-label').textContent=LEVEL_LABELS[lv]+' · Lv'+lv;
+            gridSize=levelToGrid(lv);
+            const islandCount=levelToIslands(lv);
+            canvas=document.getElementById('bridges-canvas');ctx=canvas.getContext('2d');
+            const cs=Math.min(480,Math.floor(540/gridSize)*gridSize);
+            canvas.width=cs;canvas.height=cs;
+            const cell=Math.floor(cs/gridSize);
+
+            let attempts=0;
+            do{buildPuzzle(islandCount,cell);attempts++;}while(attempts<80&&islands.filter(i=>i.need>0).length<Math.max(4,islandCount*0.6));
+
+            bridges_=[];active=true;timer.start();
+            draw();setStatus('bridges-status','Click an island, then click another to bridge them.');
+            document.getElementById('bridges-print-btn').disabled=false;
+            buildPrintHeader('bridges-print-header','Bridges',lv,'Connect islands so each shows exactly the right bridge count. Max 2 per pair.');
+            canvas.onclick=handleClick;
+        }
+
+        function buildPuzzle(n,cell){
+            islands=[];
+            const positions=new Set();
+            while(islands.length<n){
+                const r=Math.floor(Math.random()*gridSize),c=Math.floor(Math.random()*gridSize);
+                if(!positions.has(`${r},${c}`)){positions.add(`${r},${c}`);islands.push({r,c,need:0,have:0,x:c*cell+cell/2,y:r*cell+cell/2});}
+            }
+            const solBr=[];
+            const shuffled=shuffle([...islands]);
+            for(let i=1;i<shuffled.length;i++){
+                const a=shuffled[i-1],b=shuffled[i];
+                if(canConnect(a,b,solBr)){const cnt=Math.random()>0.5?2:1;solBr.push({a,b,cnt});a.need+=cnt;b.need+=cnt;}
+            }
+            for(let ex=0;ex<n*2;ex++){
+                const a=islands[Math.floor(Math.random()*islands.length)];
+                const b=islands[Math.floor(Math.random()*islands.length)];
+                if(a!==b&&canConnect(a,b,solBr)&&a.need<8&&b.need<8){
+                    const ex2=solBr.find(br=>(br.a===a&&br.b===b)||(br.a===b&&br.b===a));
+                    if(!ex2){const cnt=Math.random()>0.5?2:1;solBr.push({a,b,cnt});a.need+=cnt;b.need+=cnt;}
+                }
+            }
+            islands=islands.filter(i=>i.need>0);
+        }
+
+        function canConnect(a,b,existing){
+            if(a===b)return false;
+            if(a.r!==b.r&&a.c!==b.c)return false;
+            for(const br of existing)if(crosses(a,b,br.a,br.b))return false;
+            const ex=existing.find(br=>(br.a===a&&br.b===b)||(br.a===b&&br.b===a));
+            return!(ex&&ex.cnt>=2);
+        }
+
+        function crosses(a1,b1,a2,b2){
+            if(a1.r===b1.r&&a2.c===b2.c){
+                const r=a1.r,c=a2.c;
+                const minR=Math.min(a2.r,b2.r),maxR=Math.max(a2.r,b2.r);
+                const minC=Math.min(a1.c,b1.c),maxC=Math.max(a1.c,b1.c);
+                return r>minR&&r<maxR&&c>minC&&c<maxC;
+            }
+            if(a1.c===b1.c&&a2.r===b2.r){
+                const c=a1.c,r=a2.r;
+                const minR=Math.min(a1.r,b1.r),maxR=Math.max(a1.r,b1.r);
+                const minC=Math.min(a2.c,b2.c),maxC=Math.max(a2.c,b2.c);
+                return r>minR&&r<maxR&&c>minC&&c<maxC;
+            }
+            return false;
+        }
+
+        function isConnected(){
+            if(!islands.length)return false;
+            const visited=new Set([islands[0]]);const q=[islands[0]];
+            while(q.length){
+                const cur=q.shift();
+                for(const isl of islands)if(!visited.has(isl)){
+                    const conn=bridges_.find(br=>(br.a===cur&&br.b===isl)||(br.a===isl&&br.b===cur));
+                    if(conn){visited.add(isl);q.push(isl);}
+                }
+            }
+            return visited.size===islands.length;
+        }
+
+        function draw(){
+            if(!canvas||!ctx)return;
+            const cell=canvas.width/gridSize;
+            ctx.fillStyle='#07090f';ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle='rgba(255,255,255,0.04)';
+            for(let r=0;r<gridSize;r++)for(let c=0;c<gridSize;c++){ctx.beginPath();ctx.arc(c*cell+cell/2,r*cell+cell/2,1.5,0,Math.PI*2);ctx.fill();}
+
+            for(const br of bridges_){
+                const isD=br.cnt===2,offset=isD?4:0;
+                const dy=br.b.r===br.a.r?0:1;
+                ctx.strokeStyle='rgba(244,143,177,0.75)';ctx.lineWidth=2.5;ctx.lineCap='round';
+                if(isD){
+                    for(const sign of[-1,1]){ctx.beginPath();ctx.moveTo(br.a.x+dy*sign*offset,br.a.y+(1-dy)*sign*offset);ctx.lineTo(br.b.x+dy*sign*offset,br.b.y+(1-dy)*sign*offset);ctx.stroke();}
+                }else{ctx.beginPath();ctx.moveTo(br.a.x,br.a.y);ctx.lineTo(br.b.x,br.b.y);ctx.stroke();}
+            }
+
+            for(const isl of islands){
+                const done=isl.have===isl.need,over=isl.have>isl.need;
+                ctx.beginPath();ctx.arc(isl.x,isl.y,cell*0.32,0,Math.PI*2);
+                ctx.fillStyle=over?'rgba(239,83,80,0.25)':done?'rgba(102,187,106,0.2)':'rgba(244,143,177,0.1)';ctx.fill();
+                ctx.strokeStyle=over?'#ef5350':done?'#66bb6a':selectedIsland===isl?'#fff':'rgba(244,143,177,0.6)';
+                ctx.lineWidth=selectedIsland===isl?2.5:1.8;ctx.stroke();
+                ctx.fillStyle=over?'#ef5350':done?'#66bb6a':'#fff';
+                ctx.font=`bold ${cell*0.28}px JetBrains Mono,monospace`;
+                ctx.textAlign='center';ctx.textBaseline='middle';
+                ctx.fillText(isl.need,isl.x,isl.y);
+            }
+        }
+
+        function handleClick(e){
+            const rect=canvas.getBoundingClientRect();
+            const mx=e.clientX-rect.left,my=e.clientY-rect.top;
+            const cell=canvas.width/gridSize;
+            const hit=islands.find(isl=>Math.hypot(isl.x-mx,isl.y-my)<cell*0.35);
+            if(!hit){selectedIsland=null;draw();return;}
+            if(!selectedIsland){selectedIsland=hit;draw();return;}
+            if(selectedIsland===hit){selectedIsland=null;draw();return;}
+            if(canConnect(selectedIsland,hit,bridges_)){
+                const ex=bridges_.find(br=>(br.a===selectedIsland&&br.b===hit)||(br.a===hit&&br.b===selectedIsland));
+                if(ex){if(ex.cnt<2){ex.cnt++;selectedIsland.have++;hit.have++;}else{bridges_.splice(bridges_.indexOf(ex),1);selectedIsland.have-=2;hit.have-=2;}}
+                else{bridges_.push({a:selectedIsland,b:hit,cnt:1});selectedIsland.have++;hit.have++;}
+            }
+            selectedIsland=null;draw();
+            if(islands.every(i=>i.have===i.need)&&isConnected()){timer.stop();setStatus('bridges-status','Puzzle complete! ✦','win');}
+        }
+
+        return{
+            init(){makeSlider('bridges-slider-wrap','--pink',lv=>generate(lv));},
+            clear(){bridges_=[];islands.forEach(i=>i.have=0);selectedIsland=null;draw();setStatus('bridges-status','Bridges cleared.');},
+            solve(){setStatus('bridges-status','Auto-solve not available — use the grid logically!','err');}
+        };
+    })();
+
+    /* ═══════════════════════════════════════════════════════
+       ██  STAR SUDOKU
+    ═══════════════════════════════════════════════════════ */
+    const starsudoku=(()=>{
+        let vals=Array(12).fill(0),givenMask=Array(12).fill(false),sol=Array(12).fill(0);
+        let selected=-1,active=false;
+        const timer=makeTimer('star-timer');
+        let canvas,ctx;
+
+        const LINES=[[0,6,7,1],[1,7,8,2],[2,8,9,3],[3,9,10,4],[4,10,11,5],[5,11,6,0]];
+
+        function isValidStar(v,idx,val){
+            if(!val)return true;
+            for(const line of LINES){
+                if(line.includes(idx)){for(const li of line){if(li!==idx&&v[li]===val)return false;}}
+            }
+            return true;
+        }
+        function fillStar(v,pos=0){
+            if(pos===12)return true;
+            for(const n of shuffle([1,2,3,4,5,6])){if(isValidStar(v,pos,n)){v[pos]=n;if(fillStar(v,pos+1))return true;v[pos]=0;}}
+            return false;
+        }
+
+        // Level 1: 10 given. Level 10: 2 given (out of 12)
+        function levelToGiven(lv){return Math.max(2,Math.round(10-(lv-1)*0.9));}
+
+        function generate(lv){
+            document.getElementById('star-diff-label').textContent=LEVEL_LABELS[lv]+' · Lv'+lv;
+            const full=Array(12).fill(0);fillStar(full);sol=[...full];
+            const show=levelToGiven(lv);
+            const indices=shuffle([...Array(12).keys()]);
+            givenMask=Array(12).fill(false);
+            for(let i=0;i<show;i++)givenMask[indices[i]]=true;
+            vals=full.map((v,i)=>givenMask[i]?v:0);
+            selected=-1;active=true;timer.start();
+            canvas=document.getElementById('star-canvas');ctx=canvas.getContext('2d');
+            draw();setStatus('star-status','Click a cell and enter 1–6.');
+            document.getElementById('star-print-btn').disabled=false;
+            buildPrintHeader('star-print-header','Star Sudoku',lv,'Place 1–6 so no number repeats along any line of four cells.');
+            canvas.onclick=handleClick;
+        }
+
+        function getCellPos(idx){
+            const cx=240,cy=240,R=148,r=76;
+            if(idx<6){const a=-Math.PI/2+(idx*Math.PI/3);return{x:cx+R*Math.cos(a),y:cy+R*Math.sin(a)};}
+            const a=-Math.PI/2+Math.PI/6+((idx-6)*Math.PI/3);return{x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)};
+        }
+
+        function draw(){
+            if(!canvas||!ctx)return;
+            ctx.fillStyle='#07090f';ctx.fillRect(0,0,480,480);
+            // star lines
+            ctx.strokeStyle='rgba(179,157,219,0.25)';ctx.lineWidth=1.2;
+            for(let t=0;t<2;t++){
+                ctx.beginPath();
+                for(let i=0;i<3;i++){
+                    const a=-Math.PI/2+(t*Math.PI/3)+(i*2*Math.PI/3);
+                    const px=240+148*Math.cos(a),py=240+148*Math.sin(a);
+                    if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+                }
+                ctx.closePath();ctx.stroke();
+            }
+            for(let i=0;i<12;i++){
+                const{x,y}=getCellPos(i);
+                const isG=givenMask[i],isSel=selected===i,v=vals[i];
+                const isCon=v&&!isValidStar(vals,i,v);
+                ctx.beginPath();ctx.arc(x,y,26,0,Math.PI*2);
+                ctx.fillStyle=isSel?'rgba(179,157,219,0.28)':isCon?'rgba(239,83,80,0.15)':isG?'rgba(179,157,219,0.1)':'rgba(255,255,255,0.035)';
+                ctx.fill();
+                ctx.strokeStyle=isSel?'#b39ddb':isCon?'#ef5350':isG?'rgba(179,157,219,0.5)':'rgba(255,255,255,0.1)';
+                ctx.lineWidth=isSel?2:1.5;ctx.stroke();
+                if(v){
+                    ctx.fillStyle=isCon?'#ef5350':isG?'#b39ddb':'#fff';
+                    ctx.font=`${isG?'bold ':''}18px JetBrains Mono,monospace`;
+                    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(v,x,y);
+                }
+            }
+        }
+
+        function handleClick(e){
+            const rect=canvas.getBoundingClientRect();
+            const mx=(e.clientX-rect.left)*(480/rect.width),my=(e.clientY-rect.top)*(480/rect.height);
+            let hit=-1;
+            for(let i=0;i<12;i++){const{x,y}=getCellPos(i);if(Math.hypot(x-mx,y-my)<26){hit=i;break;}}
+            if(hit===-1)selected=-1;else if(!givenMask[hit])selected=hit;
+            draw();
+        }
+
+        function buildNumpad(){
+            const pad=document.getElementById('star-numpad');
+            for(let n=1;n<=6;n++){const b=document.createElement('button');b.textContent=n;b.onclick=()=>enter(n);pad.appendChild(b);}
+            const clr=document.createElement('button');clr.textContent='⌫';clr.onclick=()=>enter(0);pad.appendChild(clr);
+        }
+
+        function enter(v){
+            if(selected===-1||givenMask[selected])return;
+            if(!active){active=true;timer.start();}
+            vals[selected]=v;draw();
+            if(vals.indexOf(0)===-1){
+                let win=true;
+                for(const line of LINES)for(const li of line)if(!isValidStar(vals,li,vals[li])){win=false;break;}
+                if(win){timer.stop();active=false;setStatus('star-status','Star complete! ✦','win');}
+            }
+        }
+
+        return{
+            init(){buildNumpad();makeSlider('star-slider-wrap','--violet',lv=>generate(lv));},
+            clear(){vals=vals.map((v,i)=>givenMask[i]?v:0);selected=-1;draw();setStatus('star-status','Board cleared.');},
+            solve(){vals=[...sol];selected=-1;draw();timer.stop();setStatus('star-status','Solved! ✦','win');}
+        };
+    })();
+
+    /* ═══════════════════════════════════════════════════════
+       ██  MAZE
+    ═══════════════════════════════════════════════════════ */
+    const maze=(()=>{
+        let cols=0,rows=0,cells=[],playerR=0,playerC=0,active=false;
+        let solutionPath=[],showSolution=false;
+        const timer=makeTimer('maze-timer');
+        let canvas,ctx;
+
+        const N=1,S=2,E=4,W=8;
+        const OPP={1:2,2:1,4:8,8:4};
+        const DX={1:0,2:0,4:1,8:-1};
+        const DY={1:-1,2:1,4:0,8:0};
+
+        // Level 1: 12×12. Level 10: 50×50
+        function levelToSize(lv){return Math.round(12+(lv-1)*4.2);}
+
+        function generate(lv){
+            document.getElementById('maze-diff-label').textContent=LEVEL_LABELS[lv]+' · Lv'+lv;
+            const sz=levelToSize(lv);cols=sz;rows=sz;
+            cells=Array.from({length:rows},()=>Array(cols).fill(0));
+            const visited=Array.from({length:rows},()=>Array(cols).fill(false));
+
+            // Use iterative DFS to avoid stack overflow on large mazes
+            const stack=[[0,0]];visited[0][0]=true;
+            while(stack.length){
+                const[r,c]=stack[stack.length-1];
+                const dirs=shuffle([N,S,E,W]).filter(d=>{
+                    const nr=r+DY[d],nc=c+DX[d];
+                    return nr>=0&&nr<rows&&nc>=0&&nc<cols&&!visited[nr][nc];
+                });
+                if(dirs.length){
+                    const d=dirs[0];const nr=r+DY[d],nc=c+DX[d];
+                    cells[r][c]|=d;cells[nr][nc]|=OPP[d];
+                    visited[nr][nc]=true;stack.push([nr,nc]);
+                }else stack.pop();
+            }
+
+            playerR=0;playerC=0;solutionPath=[];showSolution=false;
+            canvas=document.getElementById('maze-canvas');ctx=canvas.getContext('2d');
+            const cellPx=Math.max(4,Math.min(20,Math.floor(500/sz)));
+            canvas.width=cols*cellPx;canvas.height=rows*cellPx;
+            active=true;timer.start();
+            draw();setStatus('maze-status','Arrow keys or WASD to navigate. Click maze to focus.');
+            document.getElementById('maze-print-btn').disabled=false;
+            buildPrintHeader('maze-print-header','Maze',lv,'Find the path from START (top-left ▸) to FINISH (bottom-right ■).');
+            canvas.focus();canvas.onkeydown=onKey;
+        }
+
+        function draw(){
+            if(!canvas||!ctx)return;
+            const cellPx=Math.floor(canvas.width/cols);
+            ctx.fillStyle='#07090f';ctx.fillRect(0,0,canvas.width,canvas.height);
+            if(showSolution){
+                ctx.fillStyle='rgba(79,195,247,0.12)';
+                for(const[sr,sc]of solutionPath)ctx.fillRect(sc*cellPx+1,sr*cellPx+1,cellPx-2,cellPx-2);
+            }
+            ctx.strokeStyle='rgba(255,255,255,0.6)';ctx.lineWidth=1.2;ctx.lineCap='square';
+            for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+                const x=c*cellPx,y=r*cellPx,w=cells[r][c];
+                if(!(w&N)){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+cellPx,y);ctx.stroke();}
+                if(!(w&S)){ctx.beginPath();ctx.moveTo(x,y+cellPx);ctx.lineTo(x+cellPx,y+cellPx);ctx.stroke();}
+                if(!(w&W)){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+cellPx);ctx.stroke();}
+                if(!(w&E)){ctx.beginPath();ctx.moveTo(x+cellPx,y);ctx.lineTo(x+cellPx,y+cellPx);ctx.stroke();}
+            }
+            ctx.fillStyle='rgba(102,187,106,0.35)';ctx.fillRect(1,1,cellPx-2,cellPx-2);
+            ctx.fillStyle='rgba(239,83,80,0.35)';ctx.fillRect((cols-1)*cellPx+1,(rows-1)*cellPx+1,cellPx-2,cellPx-2);
+            if(cellPx>12){
+                ctx.font=`bold ${Math.max(8,cellPx*0.45)}px Helvetica`;
+                ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='rgba(255,255,255,0.8)';
+                ctx.fillText('S',cellPx/2,cellPx/2);ctx.fillText('E',(cols-0.5)*cellPx,(rows-0.5)*cellPx);
+            }
+            ctx.beginPath();ctx.arc(playerC*cellPx+cellPx/2,playerR*cellPx+cellPx/2,Math.max(2,cellPx*0.3),0,Math.PI*2);
+            ctx.fillStyle='rgba(79,195,247,0.9)';ctx.fill();
+        }
+
+        function onKey(e){
+            if(!active)return;
+            let dir=0;
+            if(e.key==='ArrowUp'||e.key==='w'||e.key==='W')dir=N;
+            else if(e.key==='ArrowDown'||e.key==='s'||e.key==='S')dir=S;
+            else if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')dir=W;
+            else if(e.key==='ArrowRight'||e.key==='d'||e.key==='D')dir=E;
+            if(!dir)return;
+            e.preventDefault();
+            if(cells[playerR][playerC]&dir){
+                playerR+=DY[dir];playerC+=DX[dir];
+                showSolution=false;draw();
+                if(playerR===rows-1&&playerC===cols-1){timer.stop();active=false;setStatus('maze-status','You escaped! ✦','win');}
+            }
+        }
+
+        function solveMaze(){
+            const visited=Array.from({length:rows},()=>Array(cols).fill(false));
+            const prev=Array.from({length:rows},()=>Array(cols).fill(null));
+            const q=[[0,0]];visited[0][0]=true;
+            while(q.length){
+                const[r,c]=q.shift();if(r===rows-1&&c===cols-1)break;
+                for(const d of[N,S,E,W])if(cells[r][c]&d){const nr=r+DY[d],nc=c+DX[d];if(!visited[nr][nc]){visited[nr][nc]=true;prev[nr][nc]=[r,c];q.push([nr,nc]);}}
+            }
+            solutionPath=[];let cur=[rows-1,cols-1];
+            while(cur){solutionPath.unshift(cur);cur=prev[cur[0]][cur[1]];}
+            showSolution=true;draw();
+        }
+
+        return{
+            init(){makeSlider('maze-slider-wrap','--teal',lv=>generate(lv));},
+            reset(){playerR=0;playerC=0;showSolution=false;draw();setStatus('maze-status','Reset. Use arrow keys to navigate.');},
+            solve(){solveMaze();timer.stop();setStatus('maze-status','Solution path shown.','win');}
+        };
+    })();
+
+    /* INIT */
+    sudoku.init();
+    pyramid.init();
+    wordsearch.init();
+    bridges.init();
+    starsudoku.init();
+    maze.init();
+</script>
+</body>
+</html>
