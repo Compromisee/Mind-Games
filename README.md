@@ -1,4 +1,4 @@
-# Brain Puzzles Application
+# Brain Puzzles
 
 ## Overview
 The Brain Puzzles application is designed to challenge users with six different types of puzzles that promote critical thinking and cognitive skills. The application is user-friendly and includes various features to enhance the puzzle-solving experience.
@@ -29,3 +29,6 @@ The Brain Puzzles application is designed to challenge users with six different 
 - A clean and intuitive user interface is implemented to enhance user experience.
 
 Enjoy your puzzle-solving journey with Brain Puzzles!
+
+#updates
+If there is enough traction on this repo, I hope to host it publicly, when that happens, I'll update the readme!
