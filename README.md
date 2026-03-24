@@ -1,8 +1,8 @@
-###Mind Games
+### Mind Games
 
--its a RNG generater for a variety of puzzles
+Its a RNG generater for a variety of puzzles
 
-#installation:
+# Installation:
 1. Export as a zip
 2. Extract
 3. Run!
